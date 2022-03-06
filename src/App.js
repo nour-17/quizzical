@@ -1,25 +1,31 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import Questionare from "./components/questionare";
+import "./styles.css";
+const App = () => {
+  const apiKey = "https://opentdb.com/api.php?amount=5";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+  const [questions, setQuestions] = React.useState([]);
+
+  React.useEffect(() => {
+    fetch(apiKey)
+      .then((res) => res.json())
+      .then((data) => {
+        setQuestions(data.results);
+      });
+  }, []);
+  const handleAnswer = (answer, correctAnswer) => {
+    answer === correctAnswer ? console.log("right") : console.log("wrong");
+  };
+  const allQuestions = questions.map((one) => {
+    return (
+      <Questionare key={one.question} handleAnswer={handleAnswer} data={one} />
+    );
+  });
+  //   returning the component
+  return questions.length ? (
+    <div className="container">{allQuestions}</div>
+  ) : (
+    <h2>loading</h2>
   );
-}
-
+};
 export default App;
