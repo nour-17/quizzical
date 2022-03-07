@@ -1,23 +1,11 @@
 import React from "react";
 
-const Questionare = ({
-  handleAnswer,
-  data: { question, correct_answer, incorrect_answers },
-}) => {
-  const shuffledAnswer = [correct_answer, ...incorrect_answers].sort(
-    () => Math.random() - 0.5
-  );
+const Questionare = ({ data: { question, correct_answer, answerOptions } }) => {
   return (
     <div className="questionare">
-      <h2 dangerouslySetInnerHTML={{ __html: question }}></h2>
-      {shuffledAnswer.map((ans) => (
-        <button
-          className={correct_answer === ans ? "right" : "wrong"}
-          onClick={() => handleAnswer(ans, correct_answer)}
-          answer={ans}
-          dangerouslySetInnerHTML={{ __html: ans }}
-          key={ans}
-        ></button>
+      <h2> {question}</h2>
+      {answerOptions.map((ans) => (
+        <button>{ans}</button>
       ))}
     </div>
   );

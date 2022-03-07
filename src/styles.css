@@ -17,6 +17,7 @@ body {
   height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: center;
   background-image: url(./images/blue-bg.svg), url(./images/yellow-bg.svg);
   background-repeat: no-repeat;
   background-position: bottom left, top right;
@@ -45,4 +46,10 @@ button {
   font-size: var(--fs);
   margin: 1em 1em 1em 0;
   font-family: var(--ff-main);
+}
+.worng {
+  background-color: red;
+}
+.right {
+  background-color: green;
 }
