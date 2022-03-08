@@ -1,125 +1,110 @@
 import React from "react";
-import { nanoid } from "nanoid";
+import { nanoid, random } from "nanoid";
 import { decode } from "html-entities";
 import "./styles.css";
 export default function App() {
   const [quizQuestions, setQuizQuestions] = React.useState([]);
-  const [selectedAnswers, setSelectedAnswers] = React.useState([]);
-  const [numCorrect, setNumCorrect] = React.useState(0);
-  const [initialStart, setInitialStart] = React.useState(true);
-  const [customizingQuiz, setCustomizingQuiz] = React.useState(false);
-  function startQuiz() {
-    setInitialStart(false);
-    setCustomizingQuiz(true);
-  }
-  console.log(numCorrect);
+  const [quizEnded, setQuizEnded] = React.useState(false);
+  const [selecetedAnswers, setSelectedAnswers] = React.useState([]);
+  const [score, setScore] = React.useState(0);
   const formatData = (d) => decode(d);
   React.useEffect(() => {
     fetch("https://opentdb.com/api.php?amount=5")
       .then((res) => res.json())
       .then((data) => {
-        const questionData = data.results.map((item) => {
-          const formattedQuestion = formatData(item.question);
-          const formattedCorrectAnswer = formatData(item.correct_answer);
-          const incorrectAnswers = item.incorrect_answers.map((answer) =>
-            formatData(answer)
+        const questionsData = data.results.map((result) => {
+          const formattedQuestion = formatData(result.question);
+          const formattedCorrectAnswer = formatData(result.correct_answer);
+          const formmattedIncorrectAnswers = result.incorrect_answers.map(
+            (ans) => formatData(ans)
           );
-          const answersOptionsArr = [];
-          for (let i of incorrectAnswers) {
-            answersOptionsArr.push(i);
-          }
+          const options = [];
+          formmattedIncorrectAnswers.forEach((ans) => options.push(ans));
           const randomNum = Math.floor(Math.random() * 4);
-          answersOptionsArr.splice(randomNum, 0, formattedCorrectAnswer);
+          options.splice(randomNum, 0, formattedCorrectAnswer);
           return {
             question: formattedQuestion,
-            correct_answer: formattedCorrectAnswer,
             id: nanoid(),
-            answerOptions: answersOptionsArr.map((answer) => ({
-              answer: answer,
+            correct_answer: formattedCorrectAnswer,
+            options: options.map((option) => ({
+              answer: option,
               id: nanoid(),
-              isCorrect: false,
               isSelected: false,
+              isCorrect: false,
               isIncorrect: false,
             })),
           };
         });
-        setQuizQuestions(questionData);
+        setQuizQuestions(questionsData);
       });
   }, []);
 
   function selectAnswer(id, num, answer) {
-    setSelectedAnswers((prevAnswers) => {
-      for (let i of prevAnswers) {
-        if (i.questionIndex === num) {
-          return prevAnswers.map((item) => {
-            return item.questionIndex === num
-              ? { ...item, answer: answer }
-              : item;
-          });
-        }
-      }
-      return [...prevAnswers, { answer: answer, questionIndex: num }];
-    });
-    setQuizQuestions((prevQuestions) =>
-      prevQuestions.map((question, index) => {
-        if (index === num) {
-          const newAnswerOptions = question.answerOptions.map((option) => {
-            let newOption = option;
-            if (option.isSelected) {
-              newOption = { ...option, isSelected: false };
-            }
-            if (option.id === id) {
-              newOption = { ...option, isSelected: true };
-            }
-            return newOption;
-          });
-          return { ...question, answerOptions: newAnswerOptions };
-        } else return question;
-      })
-    );
-  }
-  function checkAnswers() {
-    if (selectedAnswers.length === 5) {
-      for (let i of selectedAnswers) {
-        if (i.answer === quizQuestions[i.questionIndex].correct_answer) {
-          setNumCorrect((prev) => prev + 1);
-        }
-      }
-      // map throw quizQuestions array to change boolean values which will highlight correctAnwers
-      setQuizQuestions((prevQuestions) =>
-        prevQuestions.map((question, index) => {
-          const newAnswerOptions = question.answerOptions.map((option) => {
-            let newOption = option;
-            if (option.answer === question.correct_answer) {
-              newOption = { ...option, isCorrect: true };
-            }
-            if (
-              option.isSelected &&
-              option.answer !== question.correct_answer
-            ) {
-              newOption = { ...option, isIncorrect: true };
-            }
-            return newOption;
-          });
-          return { ...question, answerOptions: newAnswerOptions };
-        })
-      );
+    if (!quizEnded) {
+      setSelectedAnswers((prevAnswers) => {
+        prevAnswers.forEach((prevAnswer) => {
+          if (prevAnswer.index === num) {
+            return prevAnswers.map((ans) => {
+              return ans.index === num ? { ...ans, answer: answer } : ans;
+            });
+          }
+        });
+        return [...prevAnswers, { index: num, answer: answer }];
+      });
+      setQuizQuestions((prevQuizQuestions) => {
+        return prevQuizQuestions.map((question, index) => {
+          if (index === num) {
+            const newAnswerOptions = question.options.map((option) => {
+              let newOptions = option;
+              if (option.isSelected) {
+                newOptions = { ...option, isSelected: false };
+              }
+              if (option.id === id) {
+                newOptions = { ...option, isSelected: true };
+              }
+              return newOptions;
+            });
+            return { ...question, options: newAnswerOptions };
+          } else return question;
+        });
+      });
     }
   }
-  const questionElements = quizQuestions.map((quizQuestion, questionIndex) => {
-    const answerOptionElements = quizQuestion.answerOptions.map((option) => {
+  function checkAnswer() {
+    if (selecetedAnswers.length === 5) {
+      selecetedAnswers.forEach((answer) => {
+        if (answer.answer === quizQuestions[answer.index].correct_answer) {
+          setScore((prevScore) => prevScore + 1);
+        }
+      });
+    }
+    setQuizQuestions((prevQuestions) =>
+      prevQuestions.map((question, index) => {
+        const newAnswerOptions = question.options.map((option) => {
+          let newOption = option;
+          if (option.answer === question.correct_answer) {
+            newOption = { ...option, isCorrect: true };
+          }
+          if (option.isSelected && option.answer !== question.correct_answer) {
+            newOption = { ...option, isIncorrect: true };
+          }
+          return newOption;
+        });
+        return { ...question, options: newAnswerOptions };
+      })
+    );
+
+    setQuizEnded(true);
+  }
+
+  const questionsElements = quizQuestions.map((question, questionIndex) => {
+    const answerOptionElements = question.options.map((option) => {
       let styles;
       if (option.isSelected) {
         styles = {
-          backgroundColor: "rgb(51, 51, 51)",
-          color: "#F5F7FB",
-          border: "1px solid rgb(51, 51, 51)",
-        };
-      }
-      if (option.isCorrect) {
-        styles = {
-          backgroundColor: "#94D7A2",
-          border: "1px solid #94D7A2",
+          backgroundColor: "#D6DBF5",
+          color: "red",
+          border: "5px solid red",
         };
       }
       if (option.isIncorrect) {
@@ -136,32 +121,27 @@ export default function App() {
         };
       }
       return (
-        <li
-          className="option"
+        <button
           style={styles}
           onClick={() => selectAnswer(option.id, questionIndex, option.answer)}
-          key={option.id}
         >
           {option.answer}
-        </li>
+        </button>
       );
     });
     return (
-      <div className="quiz-question" key={quizQuestion.id}>
-        <h3 className="quiz-question__question">{quizQuestion.question}</h3>
-        <ul className="quiz-question__options">{answerOptionElements}</ul>
+      <div className="questionare" key={question.id}>
+        <h3>{question.question}</h3>
+        <div>{answerOptionElements}</div>
       </div>
     );
   });
   return (
     <div>
       {quizQuestions.length ? (
-        <div className="questionare">
-          {questionElements}
-          <p className="score">You scored {numCorrect}/5 correct answers</p>
-          <button className="play-again-btn" onClick={checkAnswers}>
-            Play again
-          </button>
+        <div>
+          {questionsElements}
+          <button onClick={checkAnswer}>check answer</button>
         </div>
       ) : (
         <h3>loading...</h3>
