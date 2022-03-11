@@ -38,7 +38,6 @@ body {
 }
 /* answers btns */
 button {
-  background: transparent;
   padding: 0.35em 1.8em;
   border: 1px solid var(--dark-blue);
   border-radius: 0.85em;
@@ -47,9 +46,7 @@ button {
   margin: 1em 1em 1em 0;
   font-family: var(--ff-main);
 }
-button:focus {
-  color: red;
-}
+
 .worng {
   background-color: red;
 }

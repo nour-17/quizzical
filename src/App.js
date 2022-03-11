@@ -6,10 +6,15 @@ export default function App() {
   const [quizData, setQuizData] = React.useState([]);
   const [score, setScore] = React.useState(0);
   const [quizEnded, setQuizEnded] = React.useState(false);
+  const [apiUrl, setApiUrl] = React.useState("");
   const [selectedAnswers, setSelecetedAnswers] = React.useState([]);
   const formatData = d => decode(d);
+  console.log(selectedAnswers);
   React.useEffect(() => {
-    fetch("https://opentdb.com/api.php?amount=5")
+    setApiUrl(
+      "https://opentdb.com/api.php?amount=5&category=21&difficulty=easy"
+    );
+    fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
         const quizQuestionData = data.results.map(result => {
@@ -41,43 +46,40 @@ export default function App() {
         });
         setQuizData(quizQuestionData);
       });
-  }, []);
+  }, [apiUrl]);
   const selectAnswer = (id, num, answer) => {
     if (!quizEnded) {
       setSelecetedAnswers(prevSelectedAnswers => {
-        prevSelectedAnswers.forEach(prevSelectedAnswer => {
-          if (prevSelectedAnswer.index === num) {
-            prevSelectedAnswers.map(answer => {
-              return answer.index === num
-                ? { ...answer, answer: answer }
-                : answer;
-            });
+        {
+          for (let selectedAnswer of prevSelectedAnswers) {
+            if (selectedAnswer.index === num) {
+              return prevSelectedAnswers.map(item => {
+                return item.index === num ? { ...item, answer: answer } : item;
+              });
+            }
           }
-        });
-        return [...prevSelectedAnswers, { index: num, answer: answer }];
+        }
+        return [...prevSelectedAnswers, { answer: answer, index: num }];
       });
       setQuizData(prevQuizData =>
-        prevQuizData.map((item, index) => {
+        prevQuizData.map((question, index) => {
           if (index === num) {
-            const options = item.answers.map(option => {
-              let newOptions = option;
+            const newAnswerOptions = question.answers.map(option => {
+              let newOption = option;
               if (option.isSelected) {
-                newOptions = { ...option, isSelected: false };
+                newOption = { ...option, isSelected: false };
               }
               if (option.id === id) {
-                newOptions = { ...option, isSelected: true };
+                newOption = { ...option, isSelected: true };
               }
-              return newOptions;
+              return newOption;
             });
-            return { ...item, answers: options };
-          } else {
-            return item;
-          }
+            return { ...question, answers: newAnswerOptions };
+          } else return question;
         })
       );
     }
   };
-
   const checkAnswer = () => {
     if (selectedAnswers.length === 5) {
       selectedAnswers.forEach(selectedAnswer => {
@@ -106,18 +108,12 @@ export default function App() {
     }
   };
   const playAgain = () => {
+    setApiUrl("");
+    setQuizData([]);
     setSelecetedAnswers([]);
     setScore(0);
 
     setQuizEnded(false);
-    quizData.map(item =>
-      item.answers.map(answer => ({
-        ...answer,
-        isSelected: false,
-        isCorrect: false,
-        isIncorrect: false,
-      }))
-    );
   };
   const quizElements = quizData.map((question, questionIndex) => {
     const answerOptionsElements = question.answers.map(option => {
@@ -183,7 +179,7 @@ export default function App() {
           </div>
         </div>
       ) : (
-        <h2>loading...</h2>
+        <h2>hey bro were loading...</h2>
       )}
     </div>
   );
