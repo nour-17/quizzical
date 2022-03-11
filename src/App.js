@@ -3,58 +3,63 @@ import { nanoid, random } from "nanoid";
 import { decode } from "html-entities";
 import "./styles.css";
 export default function App() {
-  const [quizQuestions, setQuizQuestions] = React.useState([]);
-  const [quizEnded, setQuizEnded] = React.useState(false);
-  const [selecetedAnswers, setSelectedAnswers] = React.useState([]);
+  const [quizData, setQuizData] = React.useState([]);
   const [score, setScore] = React.useState(0);
-  const formatData = (d) => decode(d);
+  const [quizEnded, setQuizEnded] = React.useState(false);
+  const [selectedAnswers, setSelecetedAnswers] = React.useState([]);
+  const formatData = d => decode(d);
   React.useEffect(() => {
     fetch("https://opentdb.com/api.php?amount=5")
-      .then((res) => res.json())
-      .then((data) => {
-        const questionsData = data.results.map((result) => {
-          const formattedQuestion = formatData(result.question);
-          const formattedCorrectAnswer = formatData(result.correct_answer);
-          const formmattedIncorrectAnswers = result.incorrect_answers.map(
-            (ans) => formatData(ans)
+      .then(res => res.json())
+      .then(data => {
+        const quizQuestionData = data.results.map(result => {
+          const quizQuestion = formatData(result.question);
+          const quizCorrectAnswer = formatData(result.correct_answer);
+          const quizIncorrectAnswers = result.incorrect_answers.map(
+            incorrectAnswer => formatData(incorrectAnswer)
           );
-          const options = [];
-          formmattedIncorrectAnswers.forEach((ans) => options.push(ans));
+          const quizAnswersArr = [];
+          quizIncorrectAnswers.forEach(incorrectAnswer => {
+            quizAnswersArr.push(incorrectAnswer);
+          });
           const randomNum = Math.floor(Math.random() * 4);
-          options.splice(randomNum, 0, formattedCorrectAnswer);
+          quizAnswersArr.splice(randomNum, 0, quizCorrectAnswer);
           return {
-            question: formattedQuestion,
             id: nanoid(),
-            correct_answer: formattedCorrectAnswer,
-            options: options.map((option) => ({
-              answer: option,
-              id: nanoid(),
-              isSelected: false,
-              isCorrect: false,
-              isIncorrect: false,
-            })),
+            question: quizQuestion,
+            correctAnswer: quizCorrectAnswer,
+            answers: quizAnswersArr.map(answer => {
+              return {
+                answer: answer,
+                isSelected: false,
+                isCorrect: false,
+                isIncorrect: false,
+                id: nanoid(),
+              };
+            }),
           };
         });
-        setQuizQuestions(questionsData);
+        setQuizData(quizQuestionData);
       });
   }, []);
-
-  function selectAnswer(id, num, answer) {
+  const selectAnswer = (id, num, answer) => {
     if (!quizEnded) {
-      setSelectedAnswers((prevAnswers) => {
-        prevAnswers.forEach((prevAnswer) => {
-          if (prevAnswer.index === num) {
-            return prevAnswers.map((ans) => {
-              return ans.index === num ? { ...ans, answer: answer } : ans;
+      setSelecetedAnswers(prevSelectedAnswers => {
+        prevSelectedAnswers.forEach(prevSelectedAnswer => {
+          if (prevSelectedAnswer.index === num) {
+            prevSelectedAnswers.map(answer => {
+              return answer.index === num
+                ? { ...answer, answer: answer }
+                : answer;
             });
           }
         });
-        return [...prevAnswers, { index: num, answer: answer }];
+        return [...prevSelectedAnswers, { index: num, answer: answer }];
       });
-      setQuizQuestions((prevQuizQuestions) => {
-        return prevQuizQuestions.map((question, index) => {
+      setQuizData(prevQuizData =>
+        prevQuizData.map((item, index) => {
           if (index === num) {
-            const newAnswerOptions = question.options.map((option) => {
+            const options = item.answers.map(option => {
               let newOptions = option;
               if (option.isSelected) {
                 newOptions = { ...option, isSelected: false };
@@ -64,47 +69,70 @@ export default function App() {
               }
               return newOptions;
             });
-            return { ...question, options: newAnswerOptions };
-          } else return question;
-        });
-      });
+            return { ...item, answers: options };
+          } else {
+            return item;
+          }
+        })
+      );
     }
-  }
-  function checkAnswer() {
-    if (selecetedAnswers.length === 5) {
-      selecetedAnswers.forEach((answer) => {
-        if (answer.answer === quizQuestions[answer.index].correct_answer) {
-          setScore((prevScore) => prevScore + 1);
+  };
+
+  const checkAnswer = () => {
+    if (selectedAnswers.length === 5) {
+      selectedAnswers.forEach(selectedAnswer => {
+        if (
+          selectedAnswer.answer === quizData[selectedAnswer.index].correctAnswer
+        ) {
+          setScore(prevScore => prevScore + 1);
         }
+        setQuizData(prevQuizData =>
+          prevQuizData.map(item => {
+            const newOptions = item.answers.map(option => {
+              let newOption = option;
+              if (option.answer === item.correctAnswer) {
+                newOption = { ...option, isCorrect: true };
+              }
+              if (option.isSelected && option.answer !== item.correctAnswer) {
+                newOption = { ...option, isIncorrect: true };
+              }
+              return newOption;
+            });
+            return { ...item, answers: newOptions };
+          })
+        );
+        setQuizEnded(true);
       });
     }
-    setQuizQuestions((prevQuestions) =>
-      prevQuestions.map((question, index) => {
-        const newAnswerOptions = question.options.map((option) => {
-          let newOption = option;
-          if (option.answer === question.correct_answer) {
-            newOption = { ...option, isCorrect: true };
-          }
-          if (option.isSelected && option.answer !== question.correct_answer) {
-            newOption = { ...option, isIncorrect: true };
-          }
-          return newOption;
-        });
-        return { ...question, options: newAnswerOptions };
-      })
+  };
+  const playAgain = () => {
+    setSelecetedAnswers([]);
+    setScore(0);
+
+    setQuizEnded(false);
+    quizData.map(item =>
+      item.answers.map(answer => ({
+        ...answer,
+        isSelected: false,
+        isCorrect: false,
+        isIncorrect: false,
+      }))
     );
-
-    setQuizEnded(true);
-  }
-
-  const questionsElements = quizQuestions.map((question, questionIndex) => {
-    const answerOptionElements = question.options.map((option) => {
+  };
+  const quizElements = quizData.map((question, questionIndex) => {
+    const answerOptionsElements = question.answers.map(option => {
       let styles;
       if (option.isSelected) {
         styles = {
-          backgroundColor: "#D6DBF5",
-          color: "red",
-          border: "5px solid red",
+          backgroundColor: "rgb(51, 51, 51)",
+          color: "#F5F7FB",
+          border: "1px solid rgb(51, 51, 51)",
+        };
+      }
+      if (option.isCorrect) {
+        styles = {
+          backgroundColor: "#94D7A2",
+          border: "1px solid #94D7A2",
         };
       }
       if (option.isIncorrect) {
@@ -114,7 +142,7 @@ export default function App() {
           border: "1px solid #cf9d9d",
         };
       }
-      if (!option.isCorrect && !option.isIncorrect) {
+      if (quizEnded && !option.isCorrect && !option.isIncorrect) {
         styles = {
           color: "#8f96bd",
           border: "1px solid #8f96bd",
@@ -123,6 +151,7 @@ export default function App() {
       return (
         <button
           style={styles}
+          className="option"
           onClick={() => selectAnswer(option.id, questionIndex, option.answer)}
         >
           {option.answer}
@@ -131,20 +160,30 @@ export default function App() {
     });
     return (
       <div className="questionare" key={question.id}>
-        <h3>{question.question}</h3>
-        <div>{answerOptionElements}</div>
+        <h3 className="quiz-question__question">{question.question}</h3>
+        <div className="quiz-question__options">{answerOptionsElements}</div>
       </div>
     );
   });
   return (
     <div>
-      {quizQuestions.length ? (
+      {quizData.length ? (
         <div>
-          {questionsElements}
-          <button onClick={checkAnswer}>check answer</button>
+          {quizElements}
+
+          <div>
+            {!quizEnded ? (
+              <button onClick={checkAnswer}>check Answer</button>
+            ) : (
+              <div>
+                <p>YOU GOT {score}/5</p>
+                <button onClick={playAgain}>PLAY AGAIN</button>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
-        <h3>loading...</h3>
+        <h2>loading...</h2>
       )}
     </div>
   );
