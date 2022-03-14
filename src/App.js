@@ -1,19 +1,46 @@
 import React from "react";
+import Customize from "./components/Customize";
+import Confetti from 'react-confetti'
+import Intro from "./components/Intro";
 import { nanoid, random } from "nanoid";
 import { decode } from "html-entities";
 import "./styles.css";
 export default function App() {
   const [quizData, setQuizData] = React.useState([]);
   const [score, setScore] = React.useState(0);
+  const [initialStart,setInitialStart] = React.useState(true)
+  const [customizingQuiz, setCustomizingQuiz] = React.useState(false)
   const [quizEnded, setQuizEnded] = React.useState(false);
   const [apiUrl, setApiUrl] = React.useState("");
   const [selectedAnswers, setSelecetedAnswers] = React.useState([]);
+  const [loading, setLoading] = React.useState(false)
+  const [buttonStyle, setButtonStyle] = React.useState({})
+  const [gameWon, setGameWon] = React.useState(false)
+
+  const startQuiz = ()=>{
+    setInitialStart(false)
+    setCustomizingQuiz(true)
+  }
   const formatData = d => decode(d);
-  console.log(selectedAnswers);
+  const generateApi =(data)=>{
+    if(data.difficulty){
+      let url =`https://opentdb.com/api.php?amount=5&category=${data.category}&difficulty=${data.difficulty}`
+      setApiUrl(url)
+      setCustomizingQuiz(false)
+    }else{
+      setButtonStyle({
+        animation:"wiggle 500ms"
+      })
+      setTimeout(()=> setButtonStyle({}),500)
+    }
+  }
+  React.useEffect(()=>{
+    if(score===5){
+      setGameWon(true)
+    }
+  },[quizEnded])
   React.useEffect(() => {
-    setApiUrl(
-      "https://opentdb.com/api.php?amount=5&category=21&difficulty=easy"
-    );
+    setLoading(true)
     fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
@@ -45,7 +72,9 @@ export default function App() {
           };
         });
         setQuizData(quizQuestionData);
-      });
+      })
+      .catch(err => console.log(err))
+      .finally(()=> setLoading(false))
   }, [apiUrl]);
   const selectAnswer = (id, num, answer) => {
     if (!quizEnded) {
@@ -104,50 +133,43 @@ export default function App() {
           })
         );
         setQuizEnded(true);
-      });
+      } )
+    }else {
+      setButtonStyle({ /* Wiggle check answers button if clicked before all selections made */
+        animation: "wiggle 500ms"
+      })
+      setTimeout(() => setButtonStyle({}), 500)
     }
   };
   const playAgain = () => {
-    setApiUrl("");
-    setQuizData([]);
-    setSelecetedAnswers([]);
-    setScore(0);
-
+    setSelecetedAnswers([])
+    setScore(0)
+    setQuizEnded(false)
+    setApiUrl("")
+    setCustomizingQuiz(true)
     setQuizEnded(false);
+    setButtonStyle({})
+    setGameWon(false)
   };
   const quizElements = quizData.map((question, questionIndex) => {
     const answerOptionsElements = question.answers.map(option => {
       let styles;
-      if (option.isSelected) {
-        styles = {
-          backgroundColor: "rgb(51, 51, 51)",
-          color: "#F5F7FB",
-          border: "1px solid rgb(51, 51, 51)",
-        };
+      if(option.isSelected){
+        styles = "selected"
       }
-      if (option.isCorrect) {
-        styles = {
-          backgroundColor: "#94D7A2",
-          border: "1px solid #94D7A2",
-        };
+      if(option.isCorrect){
+        styles = "right"
+    
       }
-      if (option.isIncorrect) {
-        styles = {
-          backgroundColor: "#cf9d9d",
-          color: "#545e94",
-          border: "1px solid #cf9d9d",
-        };
+      if(option.isIncorrect){
+        styles = "wrong"
       }
-      if (quizEnded && !option.isCorrect && !option.isIncorrect) {
-        styles = {
-          color: "#8f96bd",
-          border: "1px solid #8f96bd",
-        };
-      }
-      return (
+      if(quizEnded && !option.isCorrect &&!option.isIncorrect){
+        styles = "nothing"
+      }return (
         <button
-          style={styles}
-          className="option"
+        key={option.id}
+          className={`option ${styles}`}
           onClick={() => selectAnswer(option.id, questionIndex, option.answer)}
         >
           {option.answer}
@@ -161,26 +183,34 @@ export default function App() {
       </div>
     );
   });
+  if (loading) {
+    return (<div className='app'>
+              <div className='loading-spinner'></div>
+            </div>)
+  }
   return (
-    <div>
-      {quizData.length ? (
-        <div>
+    <div className="app">
+      {gameWon && <Confetti />}
+      {initialStart ? <Intro startQuiz={startQuiz} />:
+      
+      customizingQuiz && <Customize generate={generateApi} buttonStyle={buttonStyle} />}{!initialStart && !customizingQuiz && (
+        <div className="container">
           {quizElements}
 
-          <div>
+          <div className="btn-score">
+            
             {!quizEnded ? (
-              <button onClick={checkAnswer}>check Answer</button>
+              <button style={buttonStyle} className="submit" onClick={checkAnswer}>check Answer</button>
             ) : (
-              <div>
-                <p>YOU GOT {score}/5</p>
-                <button onClick={playAgain}>PLAY AGAIN</button>
+              <div className="btn-score">
+                <h3 className="score">You scored <span>{score}</span>/5 correct answers</h3>
+                <button className="submit play-again-btn" onClick={playAgain}>PLAY AGAIN</button>
               </div>
             )}
           </div>
         </div>
-      ) : (
-        <h2>hey bro were loading...</h2>
       )}
+      
     </div>
   );
 }
