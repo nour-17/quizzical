@@ -152,27 +152,27 @@ export default function App() {
     setGameWon(false)
   };
   const quizElements = quizData.map((question, questionIndex) => {
-    const answerOptionsElements = question.answers.map(option => {
-      let styles;
-      if(option.isSelected){
+    const answerOptionsElements = question.answers.map(answer => {
+      let styles = "";
+      if(answer.isSelected){
         styles = "selected"
       }
-      if(option.isCorrect){
+      if(answer.isCorrect){
         styles = "right"
     
       }
-      if(option.isIncorrect){
+      if(answer.isIncorrect){
         styles = "wrong"
       }
-      if(quizEnded && !option.isCorrect &&!option.isIncorrect){
+      if(quizEnded && !answer.isCorrect &&!answer.isIncorrect){
         styles = "nothing"
       }return (
         <button
-        key={option.id}
-          className={`option ${styles}`}
-          onClick={() => selectAnswer(option.id, questionIndex, option.answer)}
+        key={answer.id}
+          className={`answer ${styles}`}
+          onClick={() => selectAnswer(answer.id, questionIndex, answer.answer)}
         >
-          {option.answer}
+          {answer.answer}
         </button>
       );
     });
@@ -203,7 +203,7 @@ export default function App() {
               <button style={buttonStyle} className="submit" onClick={checkAnswer}>check Answer</button>
             ) : (
               <div className="btn-score">
-                <h3 className="score">You scored <span>{score}</span>/5 correct answers</h3>
+                <h3 className="score">You scored {score}/<span>5</span> correct answers</h3>
                 <button className="submit play-again-btn" onClick={playAgain}>PLAY AGAIN</button>
               </div>
             )}

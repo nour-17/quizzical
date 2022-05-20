@@ -1,42 +1,42 @@
 * {
   box-sizing: border-box;
   margin: 0%;
+  user-select: none;
   /* border: 1px solid red; */
 }
+html {
+  height: 100vh;
+}
 :root {
-  --dark-blue: #293264;
-  --light-blue: #d6dbf5;
-  --clr-light: #f5f7fb;
-  --clr-fade: #dbdef0;
+  --clr-main: #ffffff;
+  --clr-accent: #ffc300;
   --fw-regular: 500;
   --fw-bold: 700;
-  --fs: 1rem;
-  --fs-btns: 1.5rem;
-  --ff-main: "Karla", sans-serif;
+  --ff-main: "IBM Plex Mono", monospace;
+  --fs-header: 1rem;
+  --fs-sub-header: 1.2rem;
+  --fs-question: 1.3rem;
+  --fs-answer: 1rem;
+  --fs-btn: 0.5rem;
 }
 #root {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  margin: auto;
 }
 body {
   background-color: var(--clr-light);
-  /* height: 100vh; */
-  /* display: flex; */
-  /* justify-content: center; */
-  /* align-items: center; */
-  background-image: url(./images/blue-bg.svg), url(./images/yellow-bg.svg);
-  background-repeat: no-repeat;
-  background-position: bottom left, top right;
-  /* background-size: 15rem; */
-  color: var(--dark-blue);
+  display: flex;
+  height: 100vh;
+  background-image: url(./images/endless-constellation.svg);
+  color: var(--clr-main);
   font-family: var(--ff-main);
-  font-weight: var(--fw-regular);
-  font-size: var(--fs);
+  font-weight: 400;
 }
-
+h1 {
+  color: var(--clr-accent);
+}
+.container {
+  margin: auto;
+}
 /* questionare */
 .questionare {
   padding-bottom: 1.5rem;
@@ -44,12 +44,22 @@ body {
   margin-top: 1em;
 }
 /* answers btns */
-button {
+.answer {
+  padding: 0.35em 1.8em;
+  border: none;
+  border-radius: 0.85em;
+  font-weight: 400;
+  font-size: var(--fs-answer);
+  margin: 0.7em;
+  font-family: var(--ff-main);
+  margin-left: 0%;
+}
+.option {
   padding: 0.35em 1.8em;
   border: 1px solid var(--dark-blue);
   border-radius: 0.85em;
-  font-weight: var(--fw-regular);
-  font-size: var(--fs);
+  font-weight: 400;
+  font-size: var(--fs-answer);
   margin: 0.7em;
   font-family: var(--ff-main);
 }
@@ -74,32 +84,31 @@ button {
 
 /* options styles */
 .selected {
-  background-color: #d6dbf5;
+  font-weight: 700;
+  background-color: #ffc300;
 }
 .wrong {
-  background-color: #cf9d9d;
-  color: #545e94;
-  border: 1px solid #cf9d9d;
+  background-color: #e06a6a;
+  color: #3f2f2f;
 }
 .right {
-  background-color: #94d7a2;
-  border: 1px solid #94d7a2;
+  background-color: #7de493;
+  color: #504949;
 }
 .nothing {
-  color: rgb(184 190 221);
-  border: 1px solid rgb(195, 198, 212);
+  color: rgb(63, 63, 63);
 }
 /* btn styles */
 .submit {
-  background-color: #4d5b9e;
+  background-color: #1eff30;
   transition: all 200ms ease-in-out;
   font-size: var(--fs-btns);
   font-weight: var(--fw-bold);
   border-radius: 0.5em;
   border: 0;
-  color: var(--clr-light);
+  color: #000000;
   padding: 0.5em 1.5em;
-  margin-top: 1em;
+  margin: 1em;
   max-width: 300px;
 }
 .submit:hover {
@@ -120,11 +129,15 @@ button {
 .intro-btn {
   width: 100%;
   font-size: 2rem;
+  background-color: var(--clr-accent);
+  color: #1a1a1a;
 }
 .intro__title {
   margin: 0;
 }
-
+.intro p {
+  text-align: center;
+}
 /* categories */
 .categories {
   display: flex;
@@ -142,23 +155,31 @@ button {
 .cutom-btn {
   width: 100%;
   max-width: 200px;
+  background: var(--clr-accent);
 }
 /* //////////////////////////// */
 .app {
-  /* max-width: 1500px; */
-  max-height: fit-content;
-  /* padding: 2rem; */
+  margin-inline: 1rem;
 }
 .option {
-  margin-left: 0;
   transition: all 200ms ease-in-out;
 }
 .option:hover {
-  background-color: #d6ddff;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 1);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 1);
+  box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 1);
+}
+.answer:hover {
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 1);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 1);
+  box-shadow: 0px 0px 5px 0px rgba(255, 255, 255, 1);
 }
 .score {
   padding-top: 1rem;
-  color: rgb(87, 76, 85);
+  color: rgb(255, 255, 255);
+}
+.score span {
+  color: green;
 }
 .btn-score {
   text-align: center;

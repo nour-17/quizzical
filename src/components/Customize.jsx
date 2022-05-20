@@ -11,9 +11,9 @@ export default function Customize({ generate, buttonStyle }) {
 
   const difficultiesOptions = ["easy", "medium", "hard"];
   const selectedOption = {
-    backgroundColor: "rgb(51, 51, 51)",
-    color: "#F5F7FB",
-    border: "1px solid rgb(51, 51, 51)",
+    backgroundColor: "rgb(255 195 0)",
+    color: "#00000",
+    fontWeight: "700",
   };
   React.useEffect(() => {
     setLoading(true);
